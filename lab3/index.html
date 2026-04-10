@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄鐘 - Lab 3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #111827;
+            --ring: #10b981;
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: var(--bg);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            flex-direction: column;
+        }
+        .timer-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.02);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 50px rgba(0,0,0,0.5),
+                0 0 20px rgba(16, 185, 129, 0.2);
+        }
+        .ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: var(--ring);
+            border-right-color: var(--ring);
+            animation: rotate 60s linear infinite;
+            animation-play-state: paused;
+        }
+        .ring.active { animation-play-state: running; }
+        .time-display {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 4rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(16,185,129,0.5);
+            z-index: 10;
+        }
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+        }
+        .btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            background: var(--ring);
+            border-color: var(--ring);
+            color: #111;
+        }
+        .back-link { margin-top: 30px; color: #9ca3af; text-decoration: none; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <h2 style="margin-bottom: 40px; color: #10b981;">番茄專注鐘</h2>
+    <div class="timer-container">
+        <div class="ring" id="ring"></div>
+        <div class="time-display" id="time">25:00</div>
+    </div>
+    <div class="controls">
+        <button class="btn" id="startBtn">開始</button>
+        <button class="btn" id="resetBtn">重置</button>
+    </div>
+    <a href="../index.html" class="back-link">← 返回首頁</a>
+
+    <script>
+        const ring = document.getElementById('ring');
+        const startBtn = document.getElementById('startBtn');
+        let isRunning = false;
+
+        startBtn.addEventListener('click', () => {
+            isRunning = !isRunning;
+            if(isRunning) {
+                ring.classList.add('active');
+                startBtn.textContent = '暫停';
+            } else {
+                ring.classList.remove('active');
+                startBtn.textContent = '開始';
+            }
+        });
+    </script>
+</body>
+</html>
