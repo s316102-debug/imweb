@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動歡迎看板 - Lab 4</title>
+    <meta name="description" content="二林工商互動歡迎看板 - 提供兩種不同的視覺特效">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@900&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        :root {
+            --bg-color: #050508;
+            --accent-1: #00f2fe;
+            --accent-2: #4facfe;
+            --accent-3: #ff0844;
+        }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: #fff;
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* Nav/Controls */
+        .controls {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 16px;
+            border-radius: 30px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .controls button {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 10px 24px;
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: bold;
+            font-family: inherit;
+        }
+        
+        .controls button:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .controls button.active {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: white;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+            transform: scale(1.05);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 1.1rem;
+            z-index: 100;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .back-btn:hover { 
+            color: #fff; 
+            transform: translateX(-5px);
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* Views */
+        .view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .view.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- Version 1: Canvas Particles --- */
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #1a1a24 0%, var(--bg-color) 100%);
+        }
+        
+        canvas {
+            display: block;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #64748b;
+            font-size: 0.9rem;
+            pointer-events: none;
+            letter-spacing: 2px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* --- Version 2: Fluid Neon / 3D Tilt --- */
+        .neon-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #050508;
+            overflow: hidden;
+        }
+
+        /* Background grid for cyberpunk feel */
+        .neon-grid {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: rotateX(60deg);
+            animation: moveGrid 15s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes moveGrid {
+            0% { transform: rotateX(60deg) translateY(0); }
+            100% { transform: rotateX(60deg) translateY(50px); }
+        }
+
+        .neon-text-wrapper {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            z-index: 2;
+        }
+
+        .neon-text {
+            font-size: 8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            color: transparent;
+            /* Subtle glass outline */
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            /* Base dark text */
+            background: linear-gradient(to bottom, #222, #000);
+            -webkit-background-clip: text;
+            background-clip: text;
+            /* Default spotlight position to center */
+            --mx: 50%;
+            --my: 50%;
+        }
+
+        /* Spotlight effect mapped to mouse */
+        .neon-text::before {
+            content: "歡迎二林工商";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: transparent;
+            background: radial-gradient(
+                circle at var(--mx) var(--my), 
+                var(--accent-1) 0%, 
+                var(--accent-2) 30%, 
+                transparent 60%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px rgba(0, 242, 254, 0.6));
+            pointer-events: none;
+            transition: background 0.1s;
+        }
+
+        /* Glitch shadow effect */
+        .neon-text::after {
+            content: "歡迎二林工商";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: transparent;
+            -webkit-text-stroke: 2px var(--accent-3);
+            z-index: -1;
+            opacity: 0;
+            pointer-events: none;
+            filter: drop-shadow(0 0 20px var(--accent-3));
+        }
+
+        .neon-container:hover .neon-text::after {
+            opacity: 0.6;
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-5px, 3px) }
+            40% { transform: translate(-5px, -3px) }
+            60% { transform: translate(5px, 3px) }
+            80% { transform: translate(5px, -3px) }
+            100% { transform: translate(0) }
+        }
+
+        /* Colorful fluid aura behind the text */
+        .aura {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateZ(-100px);
+            width: 70vw;
+            height: 50vh;
+            background: radial-gradient(circle, rgba(79, 172, 254, 0.2) 0%, rgba(255, 8, 68, 0.15) 40%, transparent 70%);
+            filter: blur(60px);
+            border-radius: 50%;
+            animation: breatheAura 8s infinite alternate ease-in-out;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes breatheAura {
+            0% { transform: translate(-50%, -50%) translateZ(-100px) scale(0.8); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) translateZ(-100px) scale(1.2); opacity: 1; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .neon-text { font-size: 6rem; letter-spacing: 5px; }
+        }
+        @media (max-width: 768px) {
+            .neon-text { font-size: 4rem; letter-spacing: 2px; }
+            .controls { flex-direction: column; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-btn">← 返回首頁</a>
+
+    <div class="controls">
+        <button class="active" onclick="switchView(1, this)">特效一：粒子爆發互動</button>
+        <button onclick="switchView(2, this)">特效二：3D 霓虹光暈追蹤</button>
+    </div>
+
+    <!-- Version 1 -->
+    <div id="view1" class="view active">
+        <div id="canvas-container">
+            <canvas id="particleCanvas"></canvas>
+            <div class="instruction">動動滑鼠，觸碰文字看看！</div>
+        </div>
+    </div>
+
+    <!-- Version 2 -->
+    <div id="view2" class="view">
+        <div class="neon-container" id="neon-container">
+            <div class="neon-grid"></div>
+            <div class="aura"></div>
+            <div class="neon-text-wrapper" id="neon-wrapper">
+                <div class="neon-text">歡迎二林工商</div>
+            </div>
+            <div class="instruction">移動滑鼠，體驗 3D 與光影跟隨！</div>
+        </div>
+    </div>
+
+    <script>
+        // --- View Switching Logic ---
+        let currentView = 1;
+        
+        function switchView(viewNum, btnElement) {
+            if (currentView === viewNum) return;
+            currentView = viewNum;
+
+            // Update buttons
+            document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // Update views
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            document.getElementById(`view${viewNum}`).classList.add('active');
+
+            // Re-init canvas if switching to view 1 to ensure correct sizing
+            if (viewNum === 1) {
+                initCanvas();
+            }
+        }
+
+        // --- Version 1: Particle System Logic ---
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        let particlesArray = [];
+        
+        let mouse = {
+            x: null,
+            y: null,
+            radius: 120 // Radius of mouse interaction
+        };
+
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x + (Math.random() * 50 - 25); // Start slightly scattered
+                this.y = y + (Math.random() * 50 - 25);
+                this.baseX = x;
+                this.baseY = y;
+                this.size = 2.5;
+                this.density = (Math.random() * 40) + 5;
+                
+                // Color palette
+                const colors = ['#00f2fe', '#4facfe', '#ff0844', '#ffb199', '#ffffff'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            update() {
+                // Check distance between mouse and particle
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                
+                let forceDirectionX = dx / distance;
+                let forceDirectionY = dy / distance;
+                let maxDistance = mouse.radius;
+                
+                // The closer the mouse, the stronger the force
+                let force = (maxDistance - distance) / maxDistance;
+                let directionX = forceDirectionX * force * this.density;
+                let directionY = forceDirectionY * force * this.density;
+
+                // Only interact if view 1 is active
+                if (currentView === 1 && distance < mouse.radius) {
+                    this.x -= directionX;
+                    this.y -= directionY;
+                } else {
+                    // Return to original position
+                    if (this.x !== this.baseX) {
+                        let dx = this.x - this.baseX;
+                        this.x -= dx / 15;
+                    }
+                    if (this.y !== this.baseY) {
+                        let dy = this.y - this.baseY;
+                        this.y -= dy / 15;
+                    }
+                }
+            }
+        }
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particlesArray = [];
+            
+            // Temporary draw text to get pixel data
+            ctx.fillStyle = 'white';
+            
+            // Adjust font size based on screen width
+            let fontSize = 150;
+            if (window.innerWidth < 1200) fontSize = 100;
+            if (window.innerWidth < 768) fontSize = 60;
+            
+            ctx.font = `900 ${fontSize}px "Noto Sans TC"`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Draw text
+            ctx.fillText('歡迎二林工商', canvas.width / 2, canvas.height / 2);
+            
+            // Get coordinates
+            const textCoordinates = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // Clear canvas after reading
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Create particles based on pixels
+            const gap = window.innerWidth < 768 ? 4 : 6; // gap between particles
+            
+            for (let y = 0, y2 = textCoordinates.height; y < y2; y += gap) {
+                for (let x = 0, x2 = textCoordinates.width; x < x2; x += gap) {
+                    // Check alpha value (4th value in rgba array)
+                    if (textCoordinates.data[(y * 4 * textCoordinates.width) + (x * 4) + 3] > 128) {
+                        particlesArray.push(new Particle(x, y));
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            if (currentView === 1) {
+                // Create a trailing effect by using fillRect with opacity instead of clearRect
+                ctx.fillStyle = 'rgba(26, 26, 36, 0.2)'; // Match background gradient center
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < particlesArray.length; i++) {
+                    particlesArray[i].draw();
+                    particlesArray[i].update();
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (currentView === 1) {
+                initCanvas();
+            }
+        });
+
+        // Initialize Version 1
+        // Font loading might be delayed, add a small timeout to ensure font is loaded before drawing
+        setTimeout(() => {
+            initCanvas();
+            animateParticles();
+        }, 500);
+
+
+        // --- Version 2: 3D Neon Logic ---
+        const neonContainer = document.getElementById('neon-container');
+        const neonWrapper = document.getElementById('neon-wrapper');
+        const neonText = document.querySelector('.neon-text');
+
+        neonContainer.addEventListener('mousemove', (e) => {
+            if (currentView !== 2) return;
+
+            const rect = neonContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Calculate 3D Tilt
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            // Rotate X is based on Y position, Rotate Y is based on X position
+            // Inverse the axis to make it follow the mouse naturally
+            const rotateX = ((y - centerY) / centerY) * -15; // Max 15 degree tilt
+            const rotateY = ((x - centerX) / centerX) * 15;
+            
+            neonWrapper.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            
+            // Update Spotlight CSS Variables
+            const percentX = (x / rect.width) * 100;
+            const percentY = (y / rect.height) * 100;
+            neonText.style.setProperty('--mx', `${percentX}%`);
+            neonText.style.setProperty('--my', `${percentY}%`);
+        });
+
+        neonContainer.addEventListener('mouseleave', () => {
+            if (currentView !== 2) return;
+            
+            // Reset transforms with a smooth transition
+            neonWrapper.style.transform = `rotateX(0deg) rotateY(0deg)`;
+            neonText.style.setProperty('--mx', `50%`);
+            neonText.style.setProperty('--my', `50%`);
+        });
+
+        // Touch support for mobile
+        neonContainer.addEventListener('touchmove', (e) => {
+            if (currentView !== 2) return;
+            
+            const rect = neonContainer.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((y - centerY) / centerY) * -15;
+            const rotateY = ((x - centerX) / centerX) * 15;
+            
+            neonWrapper.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            
+            const percentX = (x / rect.width) * 100;
+            const percentY = (y / rect.height) * 100;
+            neonText.style.setProperty('--mx', `${percentX}%`);
+            neonText.style.setProperty('--my', `${percentY}%`);
+        });
+
+        neonContainer.addEventListener('touchend', () => {
+            if (currentView !== 2) return;
+            neonWrapper.style.transform = `rotateX(0deg) rotateY(0deg)`;
+            neonText.style.setProperty('--mx', `50%`);
+            neonText.style.setProperty('--my', `50%`);
+        });
+
+    </script>
+</body>
+</html>
