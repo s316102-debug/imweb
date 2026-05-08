@@ -3,107 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>番茄鐘 - Lab 3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <title>現代感照相亭 - Photo Booth Lab 3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #111827;
-            --ring: #10b981;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f1f5f9;
         }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background: var(--bg);
-            color: #fff;
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
+            color: var(--text);
             min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
             flex-direction: column;
-        }
-        .timer-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.02);
-            border-radius: 50%;
-            box-shadow: 
-                inset 0 0 50px rgba(0,0,0,0.5),
-                0 0 20px rgba(16, 185, 129, 0.2);
+            padding: 40px 20px;
         }
-        .ring {
-            position: absolute;
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .main-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .preview-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        video {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: var(--ring);
-            border-right-color: var(--ring);
-            animation: rotate 60s linear infinite;
-            animation-play-state: paused;
+            object-fit: cover;
+            transform: scaleX(-1); /* 鏡像顯示 */
         }
-        .ring.active { animation-play-state: running; }
-        .time-display {
-            font-family: 'Roboto Mono', monospace;
-            font-size: 4rem;
+
+        .countdown-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
             font-weight: 700;
-            color: #fff;
-            text-shadow: 0 0 20px rgba(16,185,129,0.5);
+            color: white;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
             z-index: 10;
         }
+
+        .countdown-overlay.active {
+            opacity: 1;
+        }
+
         .controls {
-            margin-top: 40px;
             display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.39);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .gallery-section {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 40px;
+        }
+
+        .gallery-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
         }
-        .btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 10px 30px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: 0.3s;
+
+        .photo-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s;
         }
-        .btn:hover {
-            background: var(--ring);
-            border-color: var(--ring);
-            color: #111;
+
+        .photo-card:hover {
+            transform: scale(1.03);
         }
-        .back-link { margin-top: 30px; color: #9ca3af; text-decoration: none; }
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
+
+        .photo-card img {
+            width: 100%;
+            display: block;
+        }
+
+        .flash {
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        @keyframes flash-anim {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .do-flash {
+            animation: flash-anim 0.3s ease-out;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 40px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        canvas {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h2 style="margin-bottom: 40px; color: #10b981;">番茄專注鐘</h2>
-    <div class="timer-container">
-        <div class="ring" id="ring"></div>
-        <div class="time-display" id="time">25:00</div>
+
+    <h1>LAB 3: 智慧照相亭</h1>
+
+    <div class="main-container">
+        <div class="preview-wrapper">
+            <video id="video" autoplay playsinline></video>
+            <div id="countdown" class="countdown-overlay">3</div>
+            <div id="flash" class="flash"></div>
+        </div>
+
+        <div class="controls">
+            <button id="btn-detect" class="btn btn-secondary">
+                <span>📷</span> 偵測鏡頭
+            </button>
+            <button id="btn-burst" class="btn btn-primary" disabled>
+                <span>⚡</span> 開始倒數三連拍
+            </button>
+            <button id="btn-download" class="btn btn-secondary" disabled>
+                <span>📥</span> 下載所有照片
+            </button>
+        </div>
     </div>
-    <div class="controls">
-        <button class="btn" id="startBtn">開始</button>
-        <button class="btn" id="resetBtn">重置</button>
+
+    <div class="gallery-section">
+        <div class="gallery-header">
+            <span>我的照片牆</span>
+            <small id="status-text" style="color: #94a3b8; font-weight: 400;"></small>
+        </div>
+        <div id="gallery" class="gallery-grid">
+            <!-- 照片將顯示在這裡 -->
+        </div>
     </div>
-    <a href="../index.html" class="back-link">← 返回首頁</a>
+
+    <a href="../index.html" style="margin-top: 20px; color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">← 返回首頁</a>
+
+    <footer>
+        &copy; 2026 Photo Booth Lab • 質感實作
+    </footer>
+
+    <canvas id="canvas"></canvas>
 
     <script>
-        const ring = document.getElementById('ring');
-        const startBtn = document.getElementById('startBtn');
-        let isRunning = false;
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const btnDetect = document.getElementById('btn-detect');
+        const btnBurst = document.getElementById('btn-burst');
+        const btnDownload = document.getElementById('btn-download');
+        const countdownEl = document.getElementById('countdown');
+        const flashEl = document.getElementById('flash');
+        const gallery = document.getElementById('gallery');
+        const statusText = document.getElementById('status-text');
 
-        startBtn.addEventListener('click', () => {
-            isRunning = !isRunning;
-            if(isRunning) {
-                ring.classList.add('active');
-                startBtn.textContent = '暫停';
-            } else {
-                ring.classList.remove('active');
-                startBtn.textContent = '開始';
+        let stream = null;
+        let capturedPhotos = [];
+
+        // 1. 偵測鏡頭
+        btnDetect.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 1280, height: 720 }, 
+                    audio: false 
+                });
+                video.srcObject = stream;
+                btnDetect.textContent = '✅ 鏡頭已就緒';
+                btnDetect.disabled = true;
+                btnBurst.disabled = false;
+                statusText.textContent = '已準備好拍照';
+            } catch (err) {
+                console.error("無法存取相機: ", err);
+                alert("無法存取相機，請確認權限設定。");
             }
+        });
+
+        // 2. 倒數三連拍邏輯
+        btnBurst.addEventListener('click', async () => {
+            btnBurst.disabled = true;
+            capturedPhotos = []; // 清空舊照片
+            gallery.innerHTML = '';
+            
+            for (let i = 1; i <= 3; i++) {
+                await runCountdown(3);
+                capturePhoto(i);
+                await sleep(500); // 拍照間隔一點點時間
+            }
+            
+            btnBurst.disabled = false;
+            btnDownload.disabled = false;
+            statusText.textContent = '三連拍完成！';
+        });
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function runCountdown(seconds) {
+            return new Promise(resolve => {
+                let count = seconds;
+                countdownEl.textContent = count;
+                countdownEl.classList.add('active');
+                
+                const timer = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countdownEl.textContent = count;
+                    } else {
+                        clearInterval(timer);
+                        countdownEl.classList.remove('active');
+                        resolve();
+                    }
+                }, 1000);
+            });
+        }
+
+        // 3. 拍照並加工
+        function capturePhoto(index) {
+            // 閃光燈效果
+            flashEl.classList.remove('do-flash');
+            void flashEl.offsetWidth; // 強制重繪
+            flashEl.classList.add('do-flash');
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // 鏡像處理 (因為預覽是鏡像的，拍出來也要符合視覺)
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // 還原矩陣
+
+            // 添加底部裝飾條與文字
+            const barHeight = 80;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
+
+            ctx.fillStyle = 'white';
+            ctx.font = '24px "Outfit", "Noto Sans TC"';
+            ctx.textAlign = 'left';
+            const dateStr = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+            ctx.fillText(`Photo Booth Lab 3 - Capture #${index}`, 30, canvas.height - 30);
+            
+            ctx.textAlign = 'right';
+            ctx.fillText(dateStr, canvas.width - 30, canvas.height - 30);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            capturedPhotos.push(dataUrl);
+            
+            // 顯示在畫廊
+            const card = document.createElement('div');
+            card.className = 'photo-card';
+            card.innerHTML = `<img src="${dataUrl}" alt="Captured Photo ${index}">`;
+            gallery.appendChild(card);
+        }
+
+        // 4. 下載功能 (合併成一張長條圖)
+        btnDownload.addEventListener('click', async () => {
+            if (capturedPhotos.length === 0) return;
+
+            // 建立合併用的 Canvas
+            const stripCanvas = document.createElement('canvas');
+            const ctx = stripCanvas.getContext('2d');
+
+            // 取得第一張圖的寬高
+            const img = new Image();
+            img.src = capturedPhotos[0];
+            
+            // 等待圖片載入以獲取寬高
+            await new Promise(resolve => img.onload = resolve);
+            
+            const imgW = img.width;
+            const imgH = img.height;
+            const count = capturedPhotos.length;
+            const padding = 40;
+            const footerH = 100;
+
+            stripCanvas.width = imgW + (padding * 2);
+            stripCanvas.height = (imgH * count) + (padding * (count + 1)) + footerH;
+
+            // 背景
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, stripCanvas.width, stripCanvas.height);
+
+            // 逐一繪製照片
+            for (let i = 0; i < count; i++) {
+                const photoImg = new Image();
+                photoImg.src = capturedPhotos[i];
+                await new Promise(resolve => photoImg.onload = resolve);
+                ctx.drawImage(photoImg, padding, padding + i * (imgH + padding), imgW, imgH);
+            }
+
+            // 底部文字
+            ctx.fillStyle = '#334155';
+            ctx.font = 'bold 40px "Outfit", "Noto Sans TC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('智慧照相亭 - 精彩回憶', stripCanvas.width / 2, stripCanvas.height - 40);
+
+            // 下載單一檔案
+            const dataUrl = stripCanvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            // 檔名設定為「照片.png」，並加上時間戳記避免重複
+            a.download = `照片_${new Date().getTime()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         });
     </script>
 </body>

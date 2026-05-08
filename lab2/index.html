@@ -3,108 +3,624 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>照相亭 - Lab 2</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <title>Premium Photo Booth | Lab 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.5);
+            --secondary: #ec4899;
             --bg: #0f172a;
-            --primary: #ec4899;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
+
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
         body {
-            font-family: 'Noto Sans TC', sans-serif;
+            font-family: 'Outfit', sans-serif;
             background: var(--bg);
-            color: #fff;
+            color: #f8fafc;
             margin: 0;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-image: linear-gradient(45deg, #0f172a 0%, #334155 100%);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 40%);
+            overflow-x: hidden;
         }
-        .booth {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            padding: 40px 20px;
         }
-        .camera-screen {
+
+        .booth-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 40px;
+            position: relative;
+        }
+
+        @media (max-width: 900px) {
+            .booth-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .main-view {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #94a3b8;
+            margin: 8px 0 0 0;
+        }
+
+        .viewport-container {
+            position: relative;
             width: 100%;
-            max-width: 600px;
-            height: 400px;
+            aspect-ratio: 4/3;
             background: #000;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.02);
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror view */
+            transition: filter 0.3s ease;
+        }
+
+        .flash-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .flash-active {
+            animation: flashAnim 0.6s ease-out;
+        }
+
+        @keyframes flashAnim {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .countdown-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+        }
+
+        .controls {
             display: flex;
             align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.1);
+            justify-content: space-between;
+            gap: 20px;
         }
-        .camera-screen::after {
-            content: '';
-            position: absolute;
-            top: 10px; right: 10px;
-            width: 12px; height: 12px;
-            background: #ef4444;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
+
         .capture-btn {
-            background: var(--primary);
-            color: white;
+            background: white;
+            color: var(--bg);
             border: none;
             width: 80px;
             height: 80px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
-            margin: 0 auto;
-            border: 4px solid rgba(255,255,255,0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 0 0 var(--primary-glow);
+            position: relative;
         }
-        .capture-btn:active { transform: scale(0.9); }
-        .gallery {
+
+        .capture-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .capture-btn:active {
+            transform: scale(0.9);
+        }
+
+        .capture-btn svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .burst-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            align-items: center;
             justify-content: center;
-            min-height: 80px;
+            transition: all 0.3s;
+            position: relative;
         }
-        .photo-placeholder {
-            width: 80px;
-            height: 80px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
+
+        .burst-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
         }
-        .back-link { display: block; margin-top: 20px; color: #cbd5e1; text-decoration: none; }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
+
+        .burst-btn::after {
+            content: 'x3';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--secondary);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .burst-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .filters-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .gallery-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .gallery-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .gallery-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .gallery-list::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 10px;
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            background: #000;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .photo-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .download-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .photo-item:hover .download-overlay {
+            opacity: 1;
+        }
+
+        .btn-download {
+            background: white;
+            color: black;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .batch-download-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .batch-download-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .batch-download-btn:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #64748b;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .back-home:hover {
+            color: white;
         }
     </style>
 </head>
 <body>
-    <div class="booth">
-        <h2 style="margin-top:0;">📸 Web Photo Booth</h2>
-        <div class="camera-screen">
-            <span style="color:#64748b;">(Video Stream Placeholder)</span>
-        </div>
-        <button class="capture-btn">📷</button>
-        <div class="gallery">
-            <div class="photo-placeholder"></div>
-            <div class="photo-placeholder"></div>
-            <div class="photo-placeholder"></div>
+    <a href="../index.html" class="back-home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        返回首頁
+    </a>
+
+    <div class="container">
+        <div class="booth-card">
+            <div class="main-view">
+                <div class="header">
+                    <h1>照相亭 <span>Photo Booth</span></h1>
+                    <p>選擇濾鏡，擺好姿勢，捕捉完美瞬間</p>
+                </div>
+
+                <div class="viewport-container">
+                    <video id="video" autoplay playsinline></video>
+                    <div id="flash" class="flash-overlay"></div>
+                    <div id="countdown" class="countdown-overlay">3</div>
+                </div>
+
+                <div class="controls">
+                    <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
+                        <button id="burst-btn" class="burst-btn" title="三連拍 (每次倒數3秒)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <button id="capture-btn" class="capture-btn" title="開始倒數拍攝">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                    </button>
+                    <div style="flex: 1; display: flex; justify-content: flex-end;">
+                        <span id="status" style="font-size: 0.8rem; color: #64748b;">相機就緒</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filters-panel">
+                <div class="filter-section">
+                    <h3 class="section-title">色彩濾鏡</h3>
+                    <div class="filter-grid">
+                        <button class="filter-btn active" data-filter="none">正常</button>
+                        <button class="filter-btn" data-filter="grayscale(100%)">黑白</button>
+                        <button class="filter-btn" data-filter="sepia(100%)">復古</button>
+                        <button class="filter-btn" data-filter="invert(100%)">負片</button>
+                        <button class="filter-btn" data-filter="hue-rotate(90deg)">迷幻</button>
+                        <button class="filter-btn" data-filter="blur(5px)">柔焦</button>
+                    </div>
+                </div>
+
+                <div class="gallery-panel">
+                    <h3 class="section-title">最近拍攝</h3>
+                    <button id="batch-download-btn" class="batch-download-btn" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        下載三連拍組合圖
+                    </button>
+                    <div id="gallery" class="gallery-list">
+                        <!-- Captured photos will appear here -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <a href="../index.html" class="back-link">← 返回首頁</a>
+
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const burstBtn = document.getElementById('burst-btn');
+        const batchDownloadBtn = document.getElementById('batch-download-btn');
+        const gallery = document.getElementById('gallery');
+        const flash = document.getElementById('flash');
+        const countdownEl = document.getElementById('countdown');
+        const statusEl = document.getElementById('status');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        let currentFilter = 'none';
+
+        // Initialize Camera
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 1280, height: 720 }, 
+                    audio: false 
+                });
+                video.srcObject = stream;
+                statusEl.textContent = '相機已啟動';
+            } catch (err) {
+                console.error("Error accessing camera: ", err);
+                statusEl.textContent = '無法存取相機';
+                statusEl.style.color = '#ef4444';
+            }
+        }
+
+        // Filter selection
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                video.style.filter = currentFilter;
+            });
+        });
+
+        // Countdown Promise
+        function startCountdown(seconds) {
+            return new Promise(resolve => {
+                let count = seconds;
+                countdownEl.textContent = count;
+                countdownEl.style.display = 'block';
+
+                const timer = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countdownEl.textContent = count;
+                    } else {
+                        clearInterval(timer);
+                        countdownEl.style.display = 'none';
+                        resolve();
+                    }
+                }, 1000);
+            });
+        }
+
+        // Single Capture
+        captureBtn.addEventListener('click', async () => {
+            if (captureBtn.disabled || burstBtn.disabled) return;
+            
+            setButtonsDisabled(true);
+            await startCountdown(3);
+            takePhoto();
+            setButtonsDisabled(false);
+        });
+
+        // Burst Capture (3 shots)
+        burstBtn.addEventListener('click', async () => {
+            if (captureBtn.disabled || burstBtn.disabled) return;
+            
+            setButtonsDisabled(true);
+            statusEl.textContent = '連拍模式：1/3';
+            
+            for (let i = 1; i <= 3; i++) {
+                statusEl.textContent = `連拍模式：${i}/3`;
+                await startCountdown(3);
+                takePhoto();
+                // Brief pause between shots if needed, but countdown is already a pause
+            }
+            
+            statusEl.textContent = '相機就緒';
+            setButtonsDisabled(false);
+        });
+
+        function setButtonsDisabled(disabled) {
+            captureBtn.disabled = disabled;
+            burstBtn.disabled = disabled;
+            captureBtn.style.opacity = disabled ? '0.5' : '1';
+            burstBtn.style.opacity = disabled ? '0.5' : '1';
+        }
+
+        function takePhoto() {
+            // Flash effect
+            flash.classList.add('flash-active');
+            setTimeout(() => flash.classList.remove('flash-active'), 600);
+
+            // Set canvas size to video size
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Mirror the canvas for the photo to match preview
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+
+            // Apply current filter to canvas
+            ctx.filter = currentFilter;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert to image
+            const dataUrl = canvas.toDataURL('image/png');
+            addPhotoToGallery(dataUrl);
+        }
+
+        function addPhotoToGallery(dataUrl) {
+            const div = document.createElement('div');
+            div.className = 'photo-item';
+            
+            const timestamp = new Date().getTime();
+            const filename = `photo-booth-${timestamp}.png`;
+
+            div.innerHTML = `
+                <img src="${dataUrl}" alt="Captured Photo">
+                <div class="download-overlay">
+                    <a href="${dataUrl}" download="${filename}" class="btn-download">下載</a>
+                </div>
+            `;
+
+            // Prepend to gallery
+            if (gallery.firstChild) {
+                gallery.insertBefore(div, gallery.firstChild);
+            } else {
+                gallery.appendChild(div);
+            }
+
+            // Update batch download button state
+            const photosCount = gallery.querySelectorAll('.photo-item').length;
+            batchDownloadBtn.disabled = photosCount < 1;
+        }
+
+        // Batch download logic - Combined Strip
+        batchDownloadBtn.addEventListener('click', async () => {
+            const photos = gallery.querySelectorAll('.photo-item img');
+            const count = Math.min(photos.length, 3);
+            if (count === 0) return;
+
+            // Create a temporary canvas for the strip
+            const stripCanvas = document.createElement('canvas');
+            const ctx = stripCanvas.getContext('2d');
+
+            const imgW = photos[0].naturalWidth || video.videoWidth;
+            const imgH = photos[0].naturalHeight || video.videoHeight;
+            const padding = 40;
+            const footerH = 100;
+
+            stripCanvas.width = imgW + (padding * 2);
+            stripCanvas.height = (imgH * count) + (padding * (count + 1)) + footerH;
+
+            // Background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, stripCanvas.width, stripCanvas.height);
+
+            // Draw each photo
+            for (let i = 0; i < count; i++) {
+                // We need to wait for image load if they aren't ready, but they are already in the DOM
+                ctx.drawImage(photos[i], padding, padding + i * (imgH + padding), imgW, imgH);
+            }
+
+            // Footer Text
+            ctx.fillStyle = '#334155';
+            ctx.font = 'bold 40px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('PHOTO BOOTH SESSION', stripCanvas.width / 2, stripCanvas.height - 40);
+
+            // Download
+            const dataUrl = stripCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `照片_${new Date().getTime()}.png`;
+            link.click();
+        });
+
+        initCamera();
+    </script>
 </body>
 </html>

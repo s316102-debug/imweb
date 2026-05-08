@@ -1,128 +1,509 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>猜歌遊戲 - Lab 1</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <title>🎵 終極聽前奏猜歌名 | Lab 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #1e1b4b;
-            --panel: #312e81;
-            --accent: #818cf8;
-            --text: #e0e7ff;
+            --bg: #0f172a;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --secondary: #ec4899;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
         }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background: linear-gradient(135deg, var(--bg), #000);
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            background: var(--bg);
             color: var(--text);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0;
-            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+            overflow: hidden;
         }
-        .game-container {
-            background: rgba(49, 46, 129, 0.6);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 24px;
+
+        .container {
+            width: 90%;
+            max-width: 480px;
+            z-index: 1;
+        }
+
+        .game-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
             padding: 40px;
-            width: 100%;
-            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .vinyl-record {
-            width: 200px;
-            height: 200px;
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #818cf8, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        .vinyl-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 40px;
+        }
+
+        .vinyl {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            background: conic-gradient(#111 0deg, #333 45deg, #111 90deg, #333 135deg, #111 180deg, #333 225deg, #111 270deg, #333 315deg, #111 360deg);
-            margin: 0 auto 30px;
+            background: #000;
+            background-image: repeating-radial-gradient(circle, #111, #111 2px, #222 4px, #111 5px);
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
             position: relative;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-            animation: spin 4s linear infinite;
-            animation-play-state: paused;
         }
-        .vinyl-record.playing { animation-play-state: running; }
-        .vinyl-center {
-            width: 60px;
-            height: 60px;
-            background: var(--accent);
+
+        .vinyl::before {
+            content: '';
+            position: absolute;
+            inset: 0;
             border-radius: 50%;
-            border: 4px solid #111;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), transparent 70%);
         }
-        .controls button {
-            background: var(--accent);
-            color: #fff;
+
+        .vinyl-center {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 8px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        .vinyl-center img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .playing .vinyl {
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .controls {
+            margin-bottom: 30px;
+        }
+
+        .play-btn {
+            background: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-size: 1.1rem;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
             cursor: pointer;
-            transition: 0.3s;
-            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            margin: 0 auto;
         }
-        .controls button:hover { transform: scale(1.05); background: #6366f1; }
-        .input-group { margin-top: 30px; }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .play-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: #0f172a;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-top: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.1s linear;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
         input[type="text"] {
             width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(0,0,0,0.2);
-            color: #fff;
-            font-size: 1rem;
-            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 18px;
+            color: white;
+            font-size: 1.1rem;
+            text-align: center;
             outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 18px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s ease;
+            z-index: 10;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .result-song {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        .btn-next {
+            background: white;
+            color: #0f172a;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
             transition: 0.3s;
         }
-        input[type="text"]:focus { border-color: var(--accent); }
+
+        .btn-next:hover {
+            transform: scale(1.05);
+        }
+
         .back-link {
-            display: block;
-            margin-top: 30px;
-            color: #a5b4fc;
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            color: #64748b;
             text-decoration: none;
             font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
         }
-        .back-link:hover { text-decoration: underline; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .back-link:hover { color: white; }
+
+        .restart-link {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            color: #94a3b8;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+        }
+
+        .restart-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Animation Classes */
+        .shake { animation: shake 0.5s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .correct { color: #10b981 !important; }
+        .wrong { color: #f43f5e !important; }
     </style>
 </head>
+
 <body>
-    <div class="game-container">
-        <h2>🎵 聽前奏猜歌名</h2>
-        <div class="vinyl-record" id="record">
-            <div class="vinyl-center"></div>
+    <a href="../index.html" class="back-link">← 返回首頁</a>
+
+    <div class="container">
+        <div class="game-card" id="game-card">
+            <div class="header">
+                <h1>聽前奏猜歌名</h1>
+                <div class="stats">
+                    <span id="round-display">第 1 / 5 題</span>
+                    <span id="score-display">得分: 0</span>
+                    <button id="restart-btn" class="restart-link">重新開始</button>
+                </div>
+            </div>
+
+            <div class="vinyl-wrapper" id="vinyl-wrapper">
+                <div class="vinyl">
+                    <div class="vinyl-center">
+                        <img src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100&h=100&fit=crop" alt="Vinyl">
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="play-btn" class="play-btn">
+                    <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pause-icon" style="display:none" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: 15px;">提示：點擊播放聽 15 秒前奏</p>
+            </div>
+
+            <div class="input-section">
+                <input type="text" id="guess-input" placeholder="這首歌的名字是？" autocomplete="off">
+            </div>
+            <button id="submit-btn" class="btn-submit">送出答案</button>
+
+            <div id="overlay" class="overlay">
+                <div id="res-icon" class="result-icon">✅</div>
+                <div id="res-title" class="result-title">正確！</div>
+                <div id="res-song" class="result-song">歌名：晴天</div>
+                <button id="next-btn" class="btn-next">下一題</button>
+            </div>
         </div>
-        <div class="controls">
-            <button id="playBtn">播放提示音樂</button>
-        </div>
-        <div class="input-group">
-            <input type="text" placeholder="輸入歌名..." />
-        </div>
-        <a href="../index.html" class="back-link">← 返回首頁</a>
     </div>
 
+    <audio id="audio-player"></audio>
+
     <script>
-        const btn = document.getElementById('playBtn');
-        const record = document.getElementById('record');
-        let isPlaying = false;
-        
-        btn.addEventListener('click', () => {
-            isPlaying = !isPlaying;
-            if(isPlaying) {
-                record.classList.add('playing');
-                btn.textContent = '暫停';
+        // 歌曲庫 - 全部指向 web1.mp3 確保您的測試能過
+        const songs = [
+            { title: "安靜", artist: "周杰倫", url: "anjing.mp3" },
+            { title: "稻香", artist: "周杰倫", url: "daoxiang.mp3" },
+            { title: "告白氣球", artist: "周杰倫", url: "gaobaiqiqiu.mp3" },
+            { title: "青花瓷", artist: "周杰倫", url: "qinghuaci.mp3" },
+            { title: "小幸運", artist: "田馥甄", url: "xiaoxingyun.mp3" }
+        ];
+
+        let currentRound = 0;
+        let score = 0;
+        let currentSong = null;
+        let playLimit = 15;
+
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const vinylWrapper = document.getElementById('vinyl-wrapper');
+        const guessInput = document.getElementById('guess-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const overlay = document.getElementById('overlay');
+
+        function init() {
+            currentRound = 0;
+            score = 0;
+            // 打亂歌曲順序
+            songs.sort(() => Math.random() - 0.5);
+            loadRound();
+        }
+
+        function loadRound() {
+            currentSong = songs[currentRound];
+            audio.src = currentSong.url;
+            audio.currentTime = 0;
+            guessInput.value = "";
+            overlay.classList.remove('active');
+            document.getElementById('round-display').textContent = `第 ${currentRound + 1} / ${songs.length} 題`;
+            document.getElementById('score-display').textContent = `得分: ${score}`;
+            progressBar.style.width = "0%";
+            updateUI(false);
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play().catch(e => {
+                    alert("找不到音檔！請確認 web1.mp3 放在 lab1 資料夾中。");
+                });
+                updateUI(true);
             } else {
-                record.classList.remove('playing');
-                btn.textContent = '播放提示音樂';
+                audio.pause();
+                updateUI(false);
             }
         });
+
+        audio.addEventListener('timeupdate', () => {
+            const pct = (audio.currentTime / playLimit) * 100;
+            progressBar.style.width = `${Math.min(pct, 100)}%`;
+            if (audio.currentTime >= playLimit) {
+                audio.pause();
+                audio.currentTime = 0;
+                updateUI(false);
+            }
+        });
+
+        function updateUI(isPlaying) {
+            if (isPlaying) {
+                vinylWrapper.classList.add('playing');
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            } else {
+                vinylWrapper.classList.remove('playing');
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }
+        }
+
+        submitBtn.addEventListener('click', check);
+        guessInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') check(); });
+
+        function check() {
+            const guess = guessInput.value.trim();
+            if (!guess) return;
+
+            audio.pause();
+            updateUI(false);
+
+            const isCorrect = guess === currentSong.title;
+            if (isCorrect) {
+                score += 20;
+                showResult(true);
+            } else {
+                document.getElementById('game-card').classList.add('shake');
+                setTimeout(() => document.getElementById('game-card').classList.remove('shake'), 500);
+                showResult(false);
+            }
+        }
+
+        function showResult(isCorrect) {
+            document.getElementById('res-icon').textContent = isCorrect ? "✅" : "❌";
+            document.getElementById('res-title').textContent = isCorrect ? "正確！" : "答錯了...";
+            document.getElementById('res-title').className = `result-title ${isCorrect ? 'correct' : 'wrong'}`;
+            document.getElementById('res-song').textContent = `這首歌是：${currentSong.title} (${currentSong.artist})`;
+            
+            const nextBtn = document.getElementById('next-btn');
+            if (currentRound === songs.length - 1) {
+                nextBtn.textContent = "查看總結";
+            } else {
+                nextBtn.textContent = "下一題";
+            }
+            overlay.classList.add('active');
+        }
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentRound++;
+            if (currentRound < songs.length) {
+                loadRound();
+            } else {
+                showFinal();
+            }
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            if (confirm("確定要重新開始遊戲嗎？分數將會重置。")) {
+                audio.pause();
+                init();
+            }
+        });
+
+        function showFinal() {
+            document.getElementById('res-icon').textContent = "🏆";
+            document.getElementById('res-title').textContent = "遊戲結束！";
+            document.getElementById('res-title').className = "result-title";
+            document.getElementById('res-song').textContent = `您的最終得分是：${score} / ${songs.length * 20}`;
+            document.getElementById('next-btn').textContent = "再玩一次";
+            document.getElementById('next-btn').onclick = () => location.reload();
+        }
+
+        init();
     </script>
 </body>
+
 </html>

@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IM Web 實驗室作品集</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <title>石董作品集</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-color: #0f172a;
@@ -14,11 +17,17 @@
             --accent: #f472b6;
             --text: #f8fafc;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background: var(--bg-color);
-            background-image: 
+            background-image:
                 radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(244, 114, 182, 0.15) 0px, transparent 50%);
             color: var(--text);
@@ -29,6 +38,7 @@
             justify-content: center;
             padding: 2rem;
         }
+
         h1 {
             font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
             font-size: 3rem;
@@ -39,6 +49,7 @@
             text-align: center;
             animation: fadeInDown 1s ease-out;
         }
+
         .container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -46,6 +57,7 @@
             width: 100%;
             max-width: 1000px;
         }
+
         .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -63,25 +75,44 @@
             overflow: hidden;
             animation: fadeInUp 1s ease-out backwards;
         }
-        .card:nth-child(1) { animation-delay: 0.1s; border-top: 4px solid #3b82f6; }
-        .card:nth-child(2) { animation-delay: 0.2s; border-top: 4px solid #10b981; }
-        .card:nth-child(3) { animation-delay: 0.3s; border-top: 4px solid #8b5cf6; }
-        
+
+        .card:nth-child(1) {
+            animation-delay: 0.1s;
+            border-top: 4px solid #3b82f6;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.2s;
+            border-top: 4px solid #10b981;
+        }
+
+        .card:nth-child(3) {
+            animation-delay: 0.3s;
+            border-top: 4px solid #8b5cf6;
+        }
+
         .card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.3);
         }
+
         .card::before {
             content: '';
             position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
             transform: skewX(-20deg);
             transition: 0.5s;
         }
-        .card:hover::before { left: 150%; }
+
+        .card:hover::before {
+            left: 150%;
+        }
+
         .card-number {
             font-family: 'Orbitron', sans-serif;
             font-size: 4rem;
@@ -91,25 +122,46 @@
             top: -10px;
             right: 10px;
         }
+
         .card h2 {
             font-size: 1.5rem;
             margin: 1rem 0;
             color: var(--primary);
         }
-        .card p { color: #cbd5e1; font-weight: 300; }
-        
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .card p {
+            color: #cbd5e1;
+            font-weight: 300;
         }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
+
 <body>
-    <h1>IM Web Projects</h1>
+    <h1>石董作品集</h1>
     <div class="container">
         <a href="lab1/index.html" class="card">
             <div class="card-number">01</div>
@@ -123,9 +175,10 @@
         </a>
         <a href="lab3/index.html" class="card">
             <div class="card-number">03</div>
-            <h2>番茄鐘工具</h2>
-            <p>(自己發想) 結合優雅動畫與提醒功能的專注力計時器，提升生產力。</p>
+            <h2>智慧照相亭</h2>
+            <p>具備三連拍、倒數計時與自動日期浮水印的高質感攝影工具。</p>
         </a>
     </div>
 </body>
+
 </html>
