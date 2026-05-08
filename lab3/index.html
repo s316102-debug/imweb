@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>現代感照相亭 - Photo Booth Lab 3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>Neon Snake - 創意貪吃蛇 Lab 3</title>
+    <meta name="description" content="Lab 3 創意貪吃蛇遊戲，具備現代感霓虹設計，來挑戰你的最高分吧！">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text: #f1f5f9;
+            --bg-dark: #09090b;
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.4);
+            --secondary: #06b6d4;
+            --secondary-glow: rgba(6, 182, 212, 0.4);
+            --accent: #f43f5e;
+            --accent-glow: rgba(244, 63, 94, 0.6);
+            --text: #f8fafc;
+            --panel-bg: rgba(24, 24, 27, 0.6);
         }
 
         * {
@@ -21,403 +26,578 @@
         }
 
         body {
-            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
-            background-color: var(--bg);
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
-            color: var(--text);
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-dark);
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .background-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, var(--primary-glow) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, var(--secondary-glow) 0%, transparent 40%);
+            filter: blur(80px);
+            animation: pulse 8s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px;
+            gap: 1.5rem;
+            padding: 2.5rem 3rem;
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
 
         h1 {
             font-size: 2.5rem;
-            font-weight: 600;
-            margin-bottom: 30px;
-            background: linear-gradient(to right, #818cf8, #c084fc);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #a855f7, #06b6d4);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.02em;
+            text-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
         }
 
-        .main-container {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 30px;
-            width: 100%;
-            max-width: 800px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        .score-board {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .score-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.5rem 1.5rem;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 25px;
-        }
-
-        .preview-wrapper {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4/3;
-            background: #000;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 2px solid rgba(255, 255, 255, 0.05);
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1); /* 鏡像顯示 */
-        }
-
-        .countdown-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 120px;
-            font-weight: 700;
-            color: white;
-            background: rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-            z-index: 10;
-        }
-
-        .countdown-overlay.active {
-            opacity: 1;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.39);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .gallery-section {
-            width: 100%;
-            max-width: 800px;
-            margin-top: 40px;
-        }
-
-        .gallery-header {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .photo-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            min-width: 120px;
         }
 
-        .photo-card:hover {
-            transform: scale(1.03);
+        .score-box .label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
         }
 
-        .photo-card img {
-            width: 100%;
-            display: block;
+        .score-box span:not(.label) {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
-        .flash {
-            position: absolute;
-            inset: 0;
-            background: white;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 20;
-        }
-
-        @keyframes flash-anim {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        .do-flash {
-            animation: flash-anim 0.3s ease-out;
-        }
-
-        footer {
-            margin-top: auto;
-            padding: 40px;
-            color: #64748b;
-            font-size: 0.9rem;
+        .game-area {
+            position: relative;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 16px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.1s;
         }
 
         canvas {
-            display: none;
+            display: block;
+            background-color: #0c0c0f;
+            border-radius: 8px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(6px);
+            border-radius: 16px;
+            z-index: 10;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+
+        .overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .overlay h2 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #f8fafc, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .overlay p {
+            color: #cbd5e1;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        #final-score {
+            font-weight: 700;
+            color: var(--secondary);
+            text-shadow: 0 0 10px var(--secondary-glow);
+        }
+
+        .glow-on-hover {
+            width: 200px;
+            height: 50px;
+            border: none;
+            outline: none;
+            color: #fff;
+            background: #111;
+            cursor: pointer;
+            position: relative;
+            z-index: 0;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: inherit;
+            letter-spacing: 1px;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .glow-on-hover:hover {
+            transform: scale(1.05);
+        }
+
+        .glow-on-hover:before {
+            content: '';
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            background-size: 400%;
+            z-index: -1;
+            filter: blur(5px);
+            width: calc(100% + 4px);
+            height: calc(100% + 4px);
+            animation: glowing 20s linear infinite;
+            opacity: 0.8;
+            transition: opacity .3s ease-in-out;
+            border-radius: 25px;
+        }
+
+        .glow-on-hover:hover:before {
+            opacity: 1;
+            filter: blur(8px);
+        }
+
+        .glow-on-hover:after {
+            z-index: -1;
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #18181b;
+            left: 0;
+            top: 0;
+            border-radius: 25px;
+        }
+
+        @keyframes glowing {
+            0% { background-position: 0 0; }
+            50% { background-position: 400% 0; }
+            100% { background-position: 0 0; }
+        }
+
+        .controls-hint {
+            text-align: center;
+        }
+
+        .controls-hint p {
+            color: #64748b;
+            font-size: 0.95rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .controls-hint b {
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+
+        .back-link {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        .back-link:hover {
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(-4px);
+        }
+
+        /* Particles for food eating effect */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 10px var(--accent);
+            z-index: 5;
         }
     </style>
 </head>
 <body>
+    <div class="background-effects"></div>
+    <main class="container">
+        <header>
+            <h1>NEON SNAKE</h1>
+            <div class="score-board">
+                <div class="score-box">
+                    <span class="label">SCORE</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="score-box">
+                    <span class="label">HIGH SCORE</span>
+                    <span id="high-score">0</span>
+                </div>
+            </div>
+        </header>
 
-    <h1>LAB 3: 智慧照相亭</h1>
+        <section class="game-area" aria-label="Game Board" id="game-container">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            
+            <div id="start-overlay" class="overlay">
+                <h2>Ready to play?</h2>
+                <p>Eat the glowing orbs to grow.</p>
+                <button id="start-btn" class="glow-on-hover">START GAME</button>
+            </div>
+            
+            <div id="game-over-overlay" class="overlay hidden">
+                <h2>GAME OVER</h2>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <button id="restart-btn" class="glow-on-hover">PLAY AGAIN</button>
+            </div>
+        </section>
 
-    <div class="main-container">
-        <div class="preview-wrapper">
-            <video id="video" autoplay playsinline></video>
-            <div id="countdown" class="countdown-overlay">3</div>
-            <div id="flash" class="flash"></div>
-        </div>
-
-        <div class="controls">
-            <button id="btn-detect" class="btn btn-secondary">
-                <span>📷</span> 偵測鏡頭
-            </button>
-            <button id="btn-burst" class="btn btn-primary" disabled>
-                <span>⚡</span> 開始倒數三連拍
-            </button>
-            <button id="btn-download" class="btn btn-secondary" disabled>
-                <span>📥</span> 下載所有照片
-            </button>
-        </div>
-    </div>
-
-    <div class="gallery-section">
-        <div class="gallery-header">
-            <span>我的照片牆</span>
-            <small id="status-text" style="color: #94a3b8; font-weight: 400;"></small>
-        </div>
-        <div id="gallery" class="gallery-grid">
-            <!-- 照片將顯示在這裡 -->
-        </div>
-    </div>
-
-    <a href="../index.html" style="margin-top: 20px; color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">← 返回首頁</a>
-
-    <footer>
-        &copy; 2026 Photo Booth Lab • 質感實作
-    </footer>
-
-    <canvas id="canvas"></canvas>
+        <section class="controls-hint" aria-label="Game Controls">
+            <p>Use <b>W A S D</b> or <b>Arrow Keys</b> to move</p>
+        </section>
+        
+        <nav>
+            <a href="../index.html" class="back-link">← 返回首頁</a>
+        </nav>
+    </main>
 
     <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const btnDetect = document.getElementById('btn-detect');
-        const btnBurst = document.getElementById('btn-burst');
-        const btnDownload = document.getElementById('btn-download');
-        const countdownEl = document.getElementById('countdown');
-        const flashEl = document.getElementById('flash');
-        const gallery = document.getElementById('gallery');
-        const statusText = document.getElementById('status-text');
-
-        let stream = null;
-        let capturedPhotos = [];
-
-        // 1. 偵測鏡頭
-        btnDetect.addEventListener('click', async () => {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 1280, height: 720 }, 
-                    audio: false 
-                });
-                video.srcObject = stream;
-                btnDetect.textContent = '✅ 鏡頭已就緒';
-                btnDetect.disabled = true;
-                btnBurst.disabled = false;
-                statusText.textContent = '已準備好拍照';
-            } catch (err) {
-                console.error("無法存取相機: ", err);
-                alert("無法存取相機，請確認權限設定。");
-            }
-        });
-
-        // 2. 倒數三連拍邏輯
-        btnBurst.addEventListener('click', async () => {
-            btnBurst.disabled = true;
-            capturedPhotos = []; // 清空舊照片
-            gallery.innerHTML = '';
-            
-            for (let i = 1; i <= 3; i++) {
-                await runCountdown(3);
-                capturePhoto(i);
-                await sleep(500); // 拍照間隔一點點時間
-            }
-            
-            btnBurst.disabled = false;
-            btnDownload.disabled = false;
-            statusText.textContent = '三連拍完成！';
-        });
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        function runCountdown(seconds) {
-            return new Promise(resolve => {
-                let count = seconds;
-                countdownEl.textContent = count;
-                countdownEl.classList.add('active');
-                
-                const timer = setInterval(() => {
-                    count--;
-                    if (count > 0) {
-                        countdownEl.textContent = count;
-                    } else {
-                        clearInterval(timer);
-                        countdownEl.classList.remove('active');
-                        resolve();
-                    }
-                }, 1000);
-            });
-        }
-
-        // 3. 拍照並加工
-        function capturePhoto(index) {
-            // 閃光燈效果
-            flashEl.classList.remove('do-flash');
-            void flashEl.offsetWidth; // 強制重繪
-            flashEl.classList.add('do-flash');
-
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
-            // 鏡像處理 (因為預覽是鏡像的，拍出來也要符合視覺)
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            ctx.setTransform(1, 0, 0, 1, 0, 0); // 還原矩陣
-
-            // 添加底部裝飾條與文字
-            const barHeight = 80;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
-
-            ctx.fillStyle = 'white';
-            ctx.font = '24px "Outfit", "Noto Sans TC"';
-            ctx.textAlign = 'left';
-            const dateStr = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
-            ctx.fillText(`Photo Booth Lab 3 - Capture #${index}`, 30, canvas.height - 30);
+            const gameContainer = document.getElementById('game-container');
             
-            ctx.textAlign = 'right';
-            ctx.fillText(dateStr, canvas.width - 30, canvas.height - 30);
-
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-            capturedPhotos.push(dataUrl);
+            const scoreEl = document.getElementById('score');
+            const highScoreEl = document.getElementById('high-score');
+            const finalScoreEl = document.getElementById('final-score');
             
-            // 顯示在畫廊
-            const card = document.createElement('div');
-            card.className = 'photo-card';
-            card.innerHTML = `<img src="${dataUrl}" alt="Captured Photo ${index}">`;
-            gallery.appendChild(card);
-        }
-
-        // 4. 下載功能 (合併成一張長條圖)
-        btnDownload.addEventListener('click', async () => {
-            if (capturedPhotos.length === 0) return;
-
-            // 建立合併用的 Canvas
-            const stripCanvas = document.createElement('canvas');
-            const ctx = stripCanvas.getContext('2d');
-
-            // 取得第一張圖的寬高
-            const img = new Image();
-            img.src = capturedPhotos[0];
+            const startOverlay = document.getElementById('start-overlay');
+            const gameOverOverlay = document.getElementById('game-over-overlay');
             
-            // 等待圖片載入以獲取寬高
-            await new Promise(resolve => img.onload = resolve);
+            const startBtn = document.getElementById('start-btn');
+            const restartBtn = document.getElementById('restart-btn');
+
+            const gridSize = 20;
+            const tileCount = canvas.width / gridSize;
             
-            const imgW = img.width;
-            const imgH = img.height;
-            const count = capturedPhotos.length;
-            const padding = 40;
-            const footerH = 100;
+            let snake = [];
+            let velocity = { x: 0, y: 0 };
+            let nextVelocity = { x: 0, y: 0 };
+            let food = { x: 10, y: 10 };
+            let score = 0;
+            let highScore = localStorage.getItem('neonSnakeHighScore') || 0;
+            highScoreEl.textContent = highScore;
+            
+            let gameLoop;
+            let isGameOver = false;
+            let isPlaying = false;
 
-            stripCanvas.width = imgW + (padding * 2);
-            stripCanvas.height = (imgH * count) + (padding * (count + 1)) + footerH;
+            // Colors
+            const colors = {
+                snakeHead: '#a855f7', // Purple
+                snakeBody: '#38bdf8', // Light blue
+                food: '#f43f5e',      // Rose
+                grid: 'rgba(255, 255, 255, 0.03)'
+            };
 
-            // 背景
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, stripCanvas.width, stripCanvas.height);
-
-            // 逐一繪製照片
-            for (let i = 0; i < count; i++) {
-                const photoImg = new Image();
-                photoImg.src = capturedPhotos[i];
-                await new Promise(resolve => photoImg.onload = resolve);
-                ctx.drawImage(photoImg, padding, padding + i * (imgH + padding), imgW, imgH);
+            function initGame() {
+                snake = [
+                    { x: 10, y: 10 },
+                    { x: 10, y: 11 },
+                    { x: 10, y: 12 }
+                ];
+                velocity = { x: 0, y: -1 };
+                nextVelocity = { x: 0, y: -1 };
+                score = 0;
+                scoreEl.textContent = score;
+                isGameOver = false;
+                placeFood();
+                
+                startOverlay.classList.add('hidden');
+                gameOverOverlay.classList.add('hidden');
+                
+                if (gameLoop) clearInterval(gameLoop);
+                gameLoop = setInterval(update, 100);
+                isPlaying = true;
             }
 
-            // 底部文字
-            ctx.fillStyle = '#334155';
-            ctx.font = 'bold 40px "Outfit", "Noto Sans TC", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('智慧照相亭 - 精彩回憶', stripCanvas.width / 2, stripCanvas.height - 40);
+            function update() {
+                if (isGameOver) return;
 
-            // 下載單一檔案
-            const dataUrl = stripCanvas.toDataURL('image/png');
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            // 檔名設定為「照片.png」，並加上時間戳記避免重複
-            a.download = `照片_${new Date().getTime()}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+                velocity = nextVelocity;
+                const head = { x: snake[0].x + velocity.x, y: snake[0].y + velocity.y };
+
+                // Wall collision
+                if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                    handleGameOver();
+                    return;
+                }
+
+                // Self collision
+                for (let i = 0; i < snake.length; i++) {
+                    if (head.x === snake[i].x && head.y === snake[i].y) {
+                        handleGameOver();
+                        return;
+                    }
+                }
+
+                snake.unshift(head);
+
+                // Food collision
+                if (head.x === food.x && head.y === food.y) {
+                    score += 10;
+                    scoreEl.textContent = score;
+                    createParticles(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2);
+                    placeFood();
+                } else {
+                    snake.pop();
+                }
+
+                draw();
+            }
+
+            function draw() {
+                // Clear canvas
+                ctx.fillStyle = '#0c0c0f';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Grid
+                ctx.strokeStyle = colors.grid;
+                ctx.lineWidth = 1;
+                for(let i = 0; i < canvas.width; i += gridSize) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+                }
+
+                // Draw Food
+                ctx.save();
+                ctx.fillStyle = colors.food;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = colors.food;
+                ctx.beginPath();
+                ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2 - 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Inner bright core
+                ctx.fillStyle = '#fff';
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.arc(food.x * gridSize + gridSize/2 - 2, food.y * gridSize + gridSize/2 - 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Draw Snake
+                ctx.save();
+                snake.forEach((segment, index) => {
+                    const isHead = index === 0;
+                    const segmentColor = isHead ? colors.snakeHead : colors.snakeBody;
+                    
+                    ctx.fillStyle = segmentColor;
+                    ctx.shadowBlur = isHead ? 15 : 5;
+                    ctx.shadowColor = segmentColor;
+
+                    // Support for roundRect or fallback
+                    if (ctx.roundRect) {
+                        ctx.beginPath();
+                        ctx.roundRect(segment.x * gridSize + 2, segment.y * gridSize + 2, gridSize - 4, gridSize - 4, 6);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(segment.x * gridSize + 2, segment.y * gridSize + 2, gridSize - 4, gridSize - 4);
+                    }
+                    
+                    // Add tiny inner highlight for glass-like effect
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.shadowBlur = 0;
+                    if (ctx.roundRect) {
+                        ctx.beginPath();
+                        ctx.roundRect(segment.x * gridSize + 4, segment.y * gridSize + 4, gridSize/2, gridSize/3, 3);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(segment.x * gridSize + 4, segment.y * gridSize + 4, gridSize/2, gridSize/3);
+                    }
+                });
+                ctx.restore();
+            }
+
+            function placeFood() {
+                let isOnSnake;
+                do {
+                    isOnSnake = false;
+                    food = {
+                        x: Math.floor(Math.random() * tileCount),
+                        y: Math.floor(Math.random() * tileCount)
+                    };
+                    for (let segment of snake) {
+                        if (segment.x === food.x && segment.y === food.y) {
+                            isOnSnake = true;
+                            break;
+                        }
+                    }
+                } while (isOnSnake);
+            }
+
+            function handleGameOver() {
+                isGameOver = true;
+                isPlaying = false;
+                clearInterval(gameLoop);
+                
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('neonSnakeHighScore', highScore);
+                    highScoreEl.textContent = highScore;
+                }
+                
+                finalScoreEl.textContent = score;
+                gameOverOverlay.classList.remove('hidden');
+                
+                // Shake effect on game over
+                gameContainer.style.transform = 'translate(-10px, 0)';
+                setTimeout(() => gameContainer.style.transform = 'translate(10px, 0)', 50);
+                setTimeout(() => gameContainer.style.transform = 'translate(-10px, 0)', 100);
+                setTimeout(() => gameContainer.style.transform = 'translate(10px, 0)', 150);
+                setTimeout(() => gameContainer.style.transform = 'translate(0, 0)', 200);
+            }
+
+            function createParticles(x, y) {
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    // Position relative to game container (+8px padding, -3px for centering)
+                    particle.style.left = (x + 5) + 'px'; 
+                    particle.style.top = (y + 5) + 'px';
+                    
+                    gameContainer.appendChild(particle);
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = 20 + Math.random() * 30;
+                    const tx = Math.cos(angle) * velocity;
+                    const ty = Math.sin(angle) * velocity;
+                    
+                    particle.animate([
+                        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                        { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                    ], {
+                        duration: 400 + Math.random() * 200,
+                        easing: 'cubic-bezier(0, .9, .57, 1)'
+                    }).onfinish = () => particle.remove();
+                }
+            }
+
+            // Input handling
+            window.addEventListener('keydown', e => {
+                // Prevent default scrolling for arrow keys
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+                    e.preventDefault();
+                }
+
+                if (!isPlaying) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (!startOverlay.classList.contains('hidden') || !gameOverOverlay.classList.contains('hidden')) {
+                            initGame();
+                        }
+                    }
+                    return;
+                }
+
+                // Prevent moving backwards
+                switch (e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        if (velocity.y !== 1) nextVelocity = { x: 0, y: -1 };
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        if (velocity.y !== -1) nextVelocity = { x: 0, y: 1 };
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        if (velocity.x !== 1) nextVelocity = { x: -1, y: 0 };
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        if (velocity.x !== -1) nextVelocity = { x: 1, y: 0 };
+                        break;
+                }
+            });
+
+            startBtn.addEventListener('click', initGame);
+            restartBtn.addEventListener('click', initGame);
+
+            // Initial draw to show grid
+            draw();
         });
     </script>
 </body>
